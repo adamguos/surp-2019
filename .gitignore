@@ -1,0 +1,8 @@
+.*
+!/.gitignore
+octave-workspace
+*.mat
+*.gz
+mhaskar/
+zhuang/
+__pycache__/
