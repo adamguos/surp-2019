@@ -16,8 +16,8 @@ iterator = size(weights)[1] < size(hermites)[1] ? weights : hermites
 R = []
 
 for i in 1:size(iterator, 1)
-	W = readdlm("$weights_dir/$(weights[i])", '\t', Float64, '\n')
-	H = readdlm("$hermites_dir/$(hermites[i])", '\t', Float64, '\n')
+	W = readdlm("$weights_dir/$(weights[i])", '\t', BigFloat, '\n')
+	H = readdlm("$hermites_dir/$(hermites[i])", '\t', BigFloat, '\n')
 	r = hermite_gram_residual(W, H)
 	push!(R, r)
 end
