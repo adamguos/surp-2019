@@ -55,9 +55,9 @@ def solve_weights(X, H, N):
 		R[i] = r
 
 		# Display Gram matrix (temp)
-		if (n % 64 == 0):
-			plt.imshow(G)
-			plt.title("n = {}".format(n))
-			plt.show()
+		# if (n % 64 == 0):
+		# 	plt.imshow(G)
+		# 	plt.title("n = {}".format(n))
+		# 	plt.show()
 	
 	return W, R
