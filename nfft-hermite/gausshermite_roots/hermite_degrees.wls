@@ -4,9 +4,9 @@
 Now
 
 
-SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/gausshermite_roots/data/nodes"]
+SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/gausshermite_nodes/data/nodes"]
 F = FileNames[]
-SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/gausshermite_roots/data"]
+SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/gausshermite_nodes/data"]
 
 
 h[n_, x_] := SetPrecision[HermiteH[n, x] / Sqrt[Sqrt[Pi] * 2^n * n!] * Exp[-x^2 / 2], 50]
