@@ -1,8 +1,24 @@
 #!/usr/bin/env wolframscript
 (* ::Package:: *)
 
+(* DEFINE CONSTANTS/PARAMETERS *)
+
 SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/mehler"];
 precision = 100;
+interval = {-2, 2};
+(* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
+
+n = 128;
+
+A = {1, 3, 1};
+T = {-1, 0, 0.75};
+
+w = (Sqrt[5] - 1) / 2;
+
+numOfPoints = 2048;
+
+err[t_] := RandomReal[{-0.0005, 0.0005}];
+(* err[t_] := 0 *)
 
 (* PRE-PROCESSING FUNCTIONS *)
 
@@ -39,26 +55,13 @@ importPsi[] := Import["data/hermite_at_nodes.mat", "Table"]
 (* Compute or import Hermite function values for many points on [-n\sqrt{2}, n\sqrt{2}] *)
 generateHermiteT[points_, degree_] :=
 	Module[{t, psi},
-		(* t = SetPrecision[Array[# &, points, {-degree * Sqrt[2], degree * Sqrt[2]}], precision]; *)
-		t = SetPrecision[Array[# &, points, {-30, 30}], precision];
+		t = SetPrecision[Array[# &, points, interval], precision];
 		psi = Parallelize[Table[hermiteFunc[n, x], {n, degree}, {x, t}]];
 		Export["data/t.mat", t, "List"];
 		Export["data/hermite_at_t.mat", psi, "Table"];
 		Return[{t, psi}]
 	]
 importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat", "Table"]}
-
-(* DEFINE CONSTANTS/PARAMETERS *)
-
-n = 128;
-
-A = {3, 2, 1, 4, 5};
-T = {-5, -2, 2, 5, 8};
-K = Dimensions[A][[1]];
-
-w = (Sqrt[5] - 1) / 2;
-
-numOfPoints = 2048;
 
 (* Re-compute data *)
 Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
@@ -75,14 +78,14 @@ Print["Importing Hermite function values at many points t..."]; {t, psit} = impo
 (* DEFINE COMPUTATIONAL FUNCTIONS *)
 
 (* functions depend on constants/parameters defined above *)
-F[t_] := SetPrecision[(Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, 3} ]] , precision];
+
+F[t_] := SetPrecision[(Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]] + err[t]) , precision];
 
 mu[k_] := SetPrecision[Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k) , precision];
 
 H[x_] := Piecewise[{ {1, Abs[x] <= 1/2}, {Exp[-Exp[2 / (1 - 2 * Abs[x])] / (1 - Abs[x])], 1/2 < Abs[x] < 1}, {0, Abs[x] >= 1} }];
 
-(* Tn[xi_] := Total[Table[ H[k/n] * mu[k] * psit[[k, xi]], {k, n} ]]; *)
-Tn[xi_] := Total[Table[ H[k/n] * mu[k] * psit[[k, xi]], {k, n/2} ]];
+Tn[xi_] := Total[Table[ H[k/n] * mu[k] * psit[[k, xi]], {k, n} ]];
 
 gram[nodes_, degree_] :=
 	Module[{psi},
@@ -102,9 +105,6 @@ mut = Range[n];
 mutn = Table[mu[xi], {xi, mut}];
 ListLinePlot[Transpose@{mut, mutn}]
 
-(* Distribute definitions of symbols to kernels for parallelisation *)
-DistributeDefinitions[Tn, t, K];
-
 (* Compute Tn *)
 time = Now;
 tn = ParallelTable[
@@ -113,13 +113,29 @@ tn = ParallelTable[
 	Tn[xi],
 {xi, Dimensions[t][[1]]}];
 
-(* Export t and tn *)
-dirName = "output/" <> DateString[{"Year", "Month", "Day", "-", "Hour", "Minute", "Second"}];
+(* Export t and tn to directory named after A and T *)
+(* dirName = "output/";
+Do[dirName = dirName <> ToString[a] <> ",", {a, A}];
+dirName = StringReverse[StringDrop[StringReverse[dirName], 1]] <> "_";	(* Remove last character (comma) from dirName and add an underscore *)
+Do[dirName = dirName <> ToString[t] <> ",", {t, T}];
+dirName = StringReverse[StringDrop[StringReverse[dirName], 1]];	(* Remove last character (comma) from dirName *)
 CreateDirectory[dirName];
 Export[dirName <> "/t.mat", t, "List"];
-Export[dirName <> "/tn.mat", tn, "List"];
+Export[dirName <> "/tn.mat", tn, "List"]; *)
+
+(* Export t and tn *)
+dirName = "output/" <> DateString[{"Year", "Month", "Day", "-", "Hour", "Minute", "Second"}];
+CreateDirectory[dirName]
+SetDirectory[dirName];
+Export["t.mat", t, "List"];
+Export["tn.mat", tn, "List"];
+Export["mut.mat", mut, "List"];
+Export["mutn.mat", mutn, "List"];
+Export["A.mat", A, "List"];
+Export["T.mat", T, "List"];
 
 (* Import Tn *)
 (* tn = Import["output/tn.mat"] *)
 
-ListLinePlot[Transpose@{t, tn}]
+(* Plot t/tn using Python *)
+(* Run["python ../../plot.py"] *)
