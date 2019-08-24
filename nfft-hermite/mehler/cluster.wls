@@ -3,7 +3,7 @@
 
 (* DEFINE CONSTANTS/PARAMETERS *)
 
-SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/mehler"];
+(* SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/mehler"]; *)
 precision = 100;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
@@ -64,9 +64,9 @@ generateHermiteT[points_, degree_] :=
 importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat", "Table"]}
 
 (* Re-compute data *)
-Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
+(* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
 W = computeWeights[nodes, lambda];
-Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes];
+Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes]; *)
 Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n];
 
 (* Import previously-computed data *)
@@ -96,13 +96,23 @@ gram[nodes_, degree_] :=
 (* EXECUTE PROGRAM *)
 
 (* Test exporting F to ifft_hermite.m *)
-Flist = ParallelTable[F[t], {t, nodes}];
-Print[Flist];
+(* Flist = ParallelTable[F[t], {t, nodes}];
 Export["data/F.mat", Flist, "List"];
-Exit[]
+Exit[] *)
+
+(* Test importing F_hat to compute mu *)
+Fhat = Import["data/F_hat.mat", "List"];
+mulist = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
+Tnlist[xi_] := Total[Table[ H[k/n] * mulist[[k]] * psit[[k, xi]], {k, n} ]];
+time = Now;
+tn = ParallelTable[
+	Print[ToString[xi-1], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
+	time = Now;
+	Tnlist[xi],
+{xi, Dimensions[t][[1]]}];
 
 (* Compute Gram residual *)
-G = gram[nodes, n];
+(* G = gram[nodes, n];
 Image[G]
 Print["Gram residual norm: ", Norm[G - IdentityMatrix[Dimensions[G][[1]]], Infinity]]
 
@@ -117,7 +127,7 @@ tn = ParallelTable[
 	Print[ToString[xi-1], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
 	Tn[xi],
-{xi, Dimensions[t][[1]]}];
+{xi, Dimensions[t][[1]]}]; *)
 
 (* Export t and tn to directory named after A and T *)
 (* dirName = "output/";
