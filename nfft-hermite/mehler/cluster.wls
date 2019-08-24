@@ -3,22 +3,21 @@
 
 (* DEFINE CONSTANTS/PARAMETERS *)
 
-(* SetDirectory["/home/adam/Documents/surp-2019/nfft-hermite/mehler"]; *)
 precision = 100;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
 n = 128;
-
-A = {1, 3, 1};
-T = {-1, 0, 0.75};
-
+numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
-numOfPoints = 2048;
+A = {1, 2, 1};
+T = {-0.75, 0, 0.5};
 
 (* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
 err[t_] := 0
+
+
 
 (* PRE-PROCESSING FUNCTIONS *)
 
@@ -46,7 +45,7 @@ computeWeights[nodes_, lambda_] :=
 hermiteFunc[n_, x_] := SetPrecision[HermiteH[n, x] / Sqrt[Sqrt[Pi] * 2^n * n!] * Exp[-x^2 / 2], precision]
 computePsi[degree_, nodes_] :=
 	Module[{psi},
-		psi = Parallelize[Table[hermiteFunc[n, x], {n, degree}, {x, nodes}]];
+		psi = ParallelTable[hermiteFunc[n, x], {n, degree}, {x, nodes}];
 		Export["data/hermite_at_nodes.mat", psi, "Table"];
 		Return[psi]
 	]
@@ -63,10 +62,14 @@ generateHermiteT[points_, degree_] :=
 	]
 importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat", "Table"]}
 
+
+
+(* COMPUTE/IMPORT DATA *)
+
 (* Re-compute data *)
-(* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
+Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
 W = computeWeights[nodes, lambda];
-Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes]; *)
+Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes];
 Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n];
 
 (* Import previously-computed data *)
@@ -75,11 +78,13 @@ W = computeWeights[nodes, lambda];
 Print["Importing Hermite function values at nodes..."]; psi = importPsi[];
 Print["Importing Hermite function values at many points t..."]; {t, psit} = importHermiteT[]; *)
 
+
+
 (* DEFINE COMPUTATIONAL FUNCTIONS *)
 
 (* functions depend on constants/parameters defined above *)
 
-F[t_] := SetPrecision[(Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]] + err[t]) , precision];
+F[t_] := SetPrecision[(Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]]) , precision];
 
 mu[k_] := SetPrecision[Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k) , precision];
 
@@ -93,26 +98,22 @@ gram[nodes_, degree_] :=
 		Return[Table[Total[Table[W[[j]] * psi[[m, j]] * psi[[l, j]], {j, Dimensions[W][[1]]}]], {m, degree / 2}, {l, degree / 2}]];
 	]
 
+(* create tables of values computed by ifft_hermite *)
+
+Fl = ParallelTable[F[t], {t, nodes}];
+Export["data/Fl.mat", Fl, "List"];
+Run["octave ifft_run.m"];	(* compute inverse FFT from sampled values of F (at zeros of Hermite polynomials) *)
+
+Fhat = Import["data/Fhat.mat", "List"];
+mul = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
+Tnl[xi_] := Total[Table[ H[k/n] * mul[[k]] * psit[[k, xi]], {k, n} ]];
+
+
+
 (* EXECUTE PROGRAM *)
 
-(* Test exporting F to ifft_hermite.m *)
-(* Flist = ParallelTable[F[t], {t, nodes}];
-Export["data/F.mat", Flist, "List"];
-Exit[] *)
-
-(* Test importing F_hat to compute mu *)
-Fhat = Import["data/F_hat.mat", "List"];
-mulist = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
-Tnlist[xi_] := Total[Table[ H[k/n] * mulist[[k]] * psit[[k, xi]], {k, n} ]];
-time = Now;
-tn = ParallelTable[
-	Print[ToString[xi-1], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
-	time = Now;
-	Tnlist[xi],
-{xi, Dimensions[t][[1]]}];
-
 (* Compute Gram residual *)
-(* G = gram[nodes, n];
+G = gram[nodes, n];
 Image[G]
 Print["Gram residual norm: ", Norm[G - IdentityMatrix[Dimensions[G][[1]]], Infinity]]
 
@@ -124,10 +125,11 @@ ListLinePlot[Transpose@{mut, mutn}]
 (* Compute Tn *)
 time = Now;
 tn = ParallelTable[
-	Print[ToString[xi-1], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
+	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
 	Tn[xi],
-{xi, Dimensions[t][[1]]}]; *)
+	(* Tnl[xi], *)
+{xi, Dimensions[t][[1]]}];
 
 (* Export t and tn to directory named after A and T *)
 (* dirName = "output/";
@@ -149,9 +151,3 @@ Export["mut.mat", mut, "List"];
 Export["mutn.mat", mutn, "List"];
 Export["A.mat", A, "List"];
 Export["T.mat", T, "List"];
-
-(* Import Tn *)
-(* tn = Import["output/tn.mat"] *)
-
-(* Plot t/tn using Python *)
-(* Run["python ../../plot.py"] *)
