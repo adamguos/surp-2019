@@ -17,15 +17,15 @@ w = (Sqrt[5] - 1) / 2;
 
 numOfPoints = 2048;
 
-err[t_] := RandomReal[{-0.0005, 0.0005}];
-(* err[t_] := 0 *)
+(* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
+err[t_] := 0
 
 (* PRE-PROCESSING FUNCTIONS *)
 
 (* Compute gausshermite nodes and weights using Julia and import *)
 computeGaussHermite[n_] :=
 	Module[{nodes, lambda}, 
-		Run["julia export_gausshermite_nodes_weights.jl " <> ToString[n]];
+		Run["/usr/local/bin/julia export_gausshermite_nodes_weights.jl " <> ToString[n]];
 		nodes = Import["data/nodes.mat", "List"];
 		lambda = Import["data/weights.mat", "List"];
 		Return[{nodes, lambda}]
@@ -94,6 +94,12 @@ gram[nodes_, degree_] :=
 	]
 
 (* EXECUTE PROGRAM *)
+
+(* Test exporting F to ifft_hermite.m *)
+Flist = ParallelTable[F[t], {t, nodes}];
+Print[Flist];
+Export["data/F.mat", Flist, "List"];
+Exit[]
 
 (* Compute Gram residual *)
 G = gram[nodes, n];
