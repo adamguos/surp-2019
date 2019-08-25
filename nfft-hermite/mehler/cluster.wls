@@ -3,11 +3,12 @@
 
 (* DEFINE CONSTANTS/PARAMETERS *)
 
-precision = 100;
+SetDirectory["~/Documents/surp-2019/nfft-hermite/mehler"]
+precision = 50;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
-n = 128;
+n = 64;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
@@ -55,7 +56,7 @@ importPsi[] := Import["data/hermite_at_nodes.mat", "Table"]
 generateHermiteT[points_, degree_] :=
 	Module[{t, psi},
 		t = SetPrecision[Array[# &, points, interval], precision];
-		psi = Parallelize[Table[hermiteFunc[n, x], {n, degree}, {x, t}]];
+		psi = ParallelTable[hermiteFunc[n, x], {n, degree}, {x, t}];
 		Export["data/t.mat", t, "List"];
 		Export["data/hermite_at_t.mat", psi, "Table"];
 		Return[{t, psi}]
@@ -101,10 +102,10 @@ gram[nodes_, degree_] :=
 (* create tables of values computed by ifft_hermite *)
 
 Fl = ParallelTable[F[t], {t, nodes}];
-Export["data/Fl.mat", Fl, "List"];
+Export["data/fl.mat", Fl, "List"];
 Run["octave ifft_run.m"];	(* compute inverse FFT from sampled values of F (at zeros of Hermite polynomials) *)
 
-Fhat = Import["data/Fhat.mat", "List"];
+Fhat = Import["data/f_hat.mat", "List"];
 mul = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
 Tnl[xi_] := Total[Table[ H[k/n] * mul[[k]] * psit[[k, xi]], {k, n} ]];
 
@@ -117,11 +118,6 @@ G = gram[nodes, n];
 Image[G]
 Print["Gram residual norm: ", Norm[G - IdentityMatrix[Dimensions[G][[1]]], Infinity]]
 
-(* Plot mu *)
-mut = Range[n];
-mutn = Table[mu[xi], {xi, mut}];
-ListLinePlot[Transpose@{mut, mutn}]
-
 (* Compute Tn *)
 time = Now;
 tn = ParallelTable[
@@ -130,16 +126,6 @@ tn = ParallelTable[
 	Tn[xi],
 	(* Tnl[xi], *)
 {xi, Dimensions[t][[1]]}];
-
-(* Export t and tn to directory named after A and T *)
-(* dirName = "output/";
-Do[dirName = dirName <> ToString[a] <> ",", {a, A}];
-dirName = StringReverse[StringDrop[StringReverse[dirName], 1]] <> "_";	(* Remove last character (comma) from dirName and add an underscore *)
-Do[dirName = dirName <> ToString[t] <> ",", {t, T}];
-dirName = StringReverse[StringDrop[StringReverse[dirName], 1]];	(* Remove last character (comma) from dirName *)
-CreateDirectory[dirName];
-Export[dirName <> "/t.mat", t, "List"];
-Export[dirName <> "/tn.mat", tn, "List"]; *)
 
 (* Export t and tn *)
 dirName = "output/" <> DateString[{"Year", "Month", "Day", "-", "Hour", "Minute", "Second"}];

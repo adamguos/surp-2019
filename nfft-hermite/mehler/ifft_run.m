@@ -1,4 +1,4 @@
-Fl = load("data/Fl.mat");
+fl = load("data/fl.mat");
 addpath ../zhuang
-Fhat = ifft_hermite(Fl);
-save -ascii "data/Fhat.mat" Fhat;
+f_hat = ifft_hermite(fl);
+save -ascii "data/f_hat.mat" f_hat;
