@@ -3,17 +3,17 @@
 
 (* DEFINE CONSTANTS/PARAMETERS *)
 
-SetDirectory["~/Documents/surp-2019/nfft-hermite/mehler"]
-precision = 50;
+(* SetDirectory["~/Documents/surp-2019/nfft-hermite/mehler"] *)
+precision = 200;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
-n = 64;
+n = 128;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
-A = {1, 2, 1};
-T = {-0.75, 0, 0.5};
+A = {1, 1};
+T = {-0.5, 0.5};
 
 (* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
 err[t_] := 0
@@ -103,11 +103,20 @@ gram[nodes_, degree_] :=
 
 Fl = ParallelTable[F[t], {t, nodes}];
 Export["data/fl.mat", Fl, "List"];
-Run["octave ifft_run.m"];	(* compute inverse FFT from sampled values of F (at zeros of Hermite polynomials) *)
+Run["octave-cli ifft_run.m"];	(* compute inverse FFT from sampled values of F (at zeros of Hermite polynomials) *)
 
 Fhat = Import["data/f_hat.mat", "List"];
 mul = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
 Tnl[xi_] := Total[Table[ H[k/n] * mul[[k]] * psit[[k, xi]], {k, n} ]];
+
+(* test plot mu *)
+mut = Range[n];
+mutn = Table[mu[t], {t, mut}];
+Export["temp/mut.mat", mut, "List"];
+Export["temp/mutn.mat", mutn, "List"];
+(* mut = Range[Dimensions[mul][[1]]];
+Export["temp/mut.mat", mut, "List"];
+Export["temp/mutn.mat", mul, "List"]; *)
 
 
 
@@ -123,8 +132,8 @@ time = Now;
 tn = ParallelTable[
 	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
-	Tn[xi],
-	(* Tnl[xi], *)
+	(* Tn[xi], *)
+	Tnl[xi],
 {xi, Dimensions[t][[1]]}];
 
 (* Export t and tn *)
