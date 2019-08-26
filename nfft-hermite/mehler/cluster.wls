@@ -8,7 +8,7 @@ precision = 200;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
-n = 64;
+n = 256;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
@@ -37,17 +37,17 @@ computeWeights[nodes_, lambda_] :=
 	Module[{W},
 		W = ConstantArray[0, { Dimensions[lambda][[1]] }];
 		Do[
-			W[[i]] = SetPrecision[lambda[[i]] * Exp[ nodes[[i]] ^ 2 ], precision],
+			W[[i]] = lambda[[i]] * Exp[ nodes[[i]] ^ 2 ],
 		{ i, Dimensions[lambda][[1]] }];
 		Return[W]
 	]
 
 (* Compute or import Hermite function values for gausshermite nodes *)
-hermiteFunc[n_, x_] := SetPrecision[HermiteH[n, x] / Sqrt[Sqrt[Pi] * 2^n * n!] * Exp[-x^2 / 2], precision]
+hermiteFunc[n_, x_] := HermiteH[n, x] / Sqrt[Sqrt[Pi] * 2^n * n!] * Exp[-x^2 / 2]
 computePsi[degree_, nodes_] :=
 	Module[{psi},
 		psi = ParallelTable[hermiteFunc[n, x], {n, degree}, {x, nodes}];
-		Export["data/hermite_at_nodes.mat", psi, "Table"];
+		Export["data/hermite_at_nodes.mat", SetPrecision[psi, precision], "Table"];
 		Return[psi]
 	]
 importPsi[] := Import["data/hermite_at_nodes.mat", "Table"]
@@ -55,10 +55,10 @@ importPsi[] := Import["data/hermite_at_nodes.mat", "Table"]
 (* Compute or import Hermite function values for many points on [-n\sqrt{2}, n\sqrt{2}] *)
 generateHermiteT[points_, degree_] :=
 	Module[{t, psi},
-		t = SetPrecision[Array[# &, points, interval], precision];
+		t = Array[# &, points, interval];
 		psi = ParallelTable[hermiteFunc[n, x], {n, degree}, {x, t}];
-		Export["data/t.mat", t, "List"];
-		Export["data/hermite_at_t.mat", psi, "Table"];
+		Export["data/t.mat", SetPrecision[t, precision], "List"];
+		Export["data/hermite_at_t.mat", SetPrecision[psi, precision], "Table"];
 		Return[{t, psi}]
 	]
 importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat", "Table"]}
@@ -85,9 +85,9 @@ Print["Importing Hermite function values at many points t..."]; {t, psit} = impo
 
 (* functions depend on constants/parameters defined above *)
 
-F[t_] := SetPrecision[(Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]]) , precision];
+F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
 
-mu[k_] := SetPrecision[Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k) , precision];
+mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k);
 
 H[x_] := Piecewise[{ {1, Abs[x] <= 1/2}, {Exp[-Exp[2 / (1 - 2 * Abs[x])] / (1 - Abs[x])], 1/2 < Abs[x] < 1}, {0, Abs[x] >= 1} }];
 
@@ -102,7 +102,7 @@ gram[nodes_, degree_] :=
 (* create tables of values computed by ifft_hermite *)
 
 Fl = ParallelTable[F[t], {t, nodes}];
-Export["data/fl.mat", Fl, "List"];
+Export["data/fl.mat", SetPrecision[Fl, precision], "List"];
 Run["octave-cli ifft_run.m"];	(* compute inverse FFT from sampled values of F (at zeros of Hermite polynomials) *)
 
 Fhat = Import["data/f_hat.mat", "List"];
@@ -112,11 +112,11 @@ Tnl[xi_] := Total[Table[ H[k/n] * mul[[k]] * psit[[k, xi]], {k, n} ]];
 (* test plot mu *)
 mut = Range[n];
 mutn = Table[mu[t], {t, mut}];
-Export["temp/mut.mat", mut, "List"];
-Export["temp/mutn.mat", mutn, "List"];
+Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
+Export["temp/mutn.mat", SetPrecision[mutn, precision], "List"];
 (* mut = Range[Dimensions[mul][[1]]];
-Export["temp/mut.mat", mut, "List"];
-Export["temp/mutn.mat", mul, "List"]; *)
+Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
+Export["temp/mutn.mat", SetPrecision[mul, precision], "List"]; *)
 
 
 
@@ -129,11 +129,12 @@ Print["Gram residual norm: ", Norm[G - IdentityMatrix[Dimensions[G][[1]]], Infin
 
 (* Compute Tn *)
 time = Now;
-tn = ParallelTable[
+tn = ConstantArray[0, { Dimensions[t][[1]] }]
+(* tn = ParallelTable[
 	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
 	Tn[xi],
-{xi, Dimensions[t][[1]]}];
+{xi, Dimensions[t][[1]]}]; *)
 
 (* Compute Tnl using ifft *)
 time = Now;
@@ -147,10 +148,10 @@ tnl = ParallelTable[
 dirName = "output/" <> DateString[{"Year", "Month", "Day", "-", "Hour", "Minute", "Second"}];
 CreateDirectory[dirName]
 SetDirectory[dirName];
-Export["t.mat", t, "List"];
-Export["tn.mat", tn, "List"];
-Export["tnl.mat", tnl, "List"];
-Export["mut.mat", mut, "List"];
-Export["mutn.mat", mutn, "List"];
-Export["A.mat", A, "List"];
-Export["T.mat", T, "List"];
+Export["t.mat", SetPrecision[t, precision], "List"];
+Export["tn.mat", SetPrecision[tn, precision], "List"];
+Export["tnl.mat", SetPrecision[tnl, precision], "List"];
+Export["mut.mat", SetPrecision[mut, precision], "List"];
+Export["mutn.mat", SetPrecision[mutn, precision], "List"];
+Export["A.mat", SetPrecision[A, precision], "List"];
+Export["T.mat", SetPrecision[T, precision], "List"];
