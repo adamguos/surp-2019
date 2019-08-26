@@ -8,12 +8,12 @@ precision = 200;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
-n = 128;
+n = 64;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
-A = {1, 1};
-T = {-0.5, 0.5};
+A = {1, 2, 1};
+T = {-1, 0, 0.75};
 
 (* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
 err[t_] := 0
@@ -132,7 +132,14 @@ time = Now;
 tn = ParallelTable[
 	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
-	(* Tn[xi], *)
+	Tn[xi],
+{xi, Dimensions[t][[1]]}];
+
+(* Compute Tnl using ifft *)
+time = Now;
+tnl = ParallelTable[
+	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
+	time = Now;
 	Tnl[xi],
 {xi, Dimensions[t][[1]]}];
 
@@ -142,6 +149,7 @@ CreateDirectory[dirName]
 SetDirectory[dirName];
 Export["t.mat", t, "List"];
 Export["tn.mat", tn, "List"];
+Export["tnl.mat", tnl, "List"];
 Export["mut.mat", mut, "List"];
 Export["mutn.mat", mutn, "List"];
 Export["A.mat", A, "List"];
