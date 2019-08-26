@@ -8,7 +8,7 @@ precision = 200;
 interval = {-2, 2};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
-n = 256;
+n = 80;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
@@ -85,7 +85,7 @@ Print["Importing Hermite function values at many points t..."]; {t, psit} = impo
 
 (* functions depend on constants/parameters defined above *)
 
-F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
+F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * SetPrecision[t, precision]^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * SetPrecision[t, precision] * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
 
 mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k);
 
@@ -130,11 +130,11 @@ Print["Gram residual norm: ", Norm[G - IdentityMatrix[Dimensions[G][[1]]], Infin
 (* Compute Tn *)
 time = Now;
 tn = ConstantArray[0, { Dimensions[t][[1]] }]
-(* tn = ParallelTable[
+tn = ParallelTable[
 	Print[ToString[xi], " out of ", ToString[Dimensions[t][[1]]] ". Time elapsed: ", ToString[Now - time]];
 	time = Now;
 	Tn[xi],
-{xi, Dimensions[t][[1]]}]; *)
+{xi, Dimensions[t][[1]]}];
 
 (* Compute Tnl using ifft *)
 time = Now;
