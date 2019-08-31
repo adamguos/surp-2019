@@ -5,4 +5,4 @@ mut = np.loadtxt("mut.mat")
 mutn = np.loadtxt("mutn.mat")
 
 plt.plot(mut, mutn)
-plt.savefig("plot.png")
+plt.savefig("plot.svg")
