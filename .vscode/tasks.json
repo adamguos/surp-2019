@@ -6,7 +6,7 @@
 		{
 			"label": "cluster.wls: Plot mu",
 			"type": "shell",
-			"command": "./cluster.wls && cd temp && python ../plot_mu.py && chromium plot.png",
+			"command": "./cluster.wls && cd temp && python ../plot_mu.py && chromium plot.svg",
 			"options": {
 				"cwd": "${fileDirname}"
 			},
@@ -19,7 +19,7 @@
 		{
 			"label": "cluster.wls: Plot Tn",
 			"type": "shell",
-			"command": "./cluster.wls && cd output && cd `ls -t | head -1` && python ../../plot.py && chromium plot.png",
+			"command": "./cluster.wls && cd output && cd `ls -t | head -1` && python ../../plot.py && chromium plot.svg",
 			"options": {
 				"cwd": "${fileDirname}"
 			},

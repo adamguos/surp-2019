@@ -7,4 +7,4 @@ mutn = np.loadtxt("mutn.mat")
 # mutn = mutn[:-40]
 
 plt.plot(mut, mutn)
-plt.savefig("plot.png")
+plt.savefig("plot.svg")

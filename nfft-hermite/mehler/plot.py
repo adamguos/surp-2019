@@ -13,4 +13,5 @@ plt.legend()
 for i in range(len(T)):
 	plt.axvline(x=T[i], color="k", linestyle="--")
 	plt.text(T[i] + 0.02, 0, "t = {}\na = {}".format(T[i], A[i]))
-plt.savefig("plot.png")
+# plt.savefig("plot.png")
+plt.savefig("plot.svg")

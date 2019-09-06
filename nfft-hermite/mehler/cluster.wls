@@ -4,15 +4,15 @@
 (* DEFINE CONSTANTS/PARAMETERS *)
 
 (* SetDirectory["~/Documents/surp-2019/nfft-hermite/mehler"] *)
-precision = 200;
-interval = {-2, 2};
+precision = 100;
+interval = {-3, 3};
 (* interval = {-degree * Sqrt[2], degree * Sqrt[2]}; *)
 
 n = 128;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
-A = {1, 2, 1};
+A = {1, 3, 1};
 T = {-1, 0, 0.75};
 
 (* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
@@ -68,7 +68,8 @@ importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat
 (* COMPUTE/IMPORT DATA *)
 
 (* Re-compute data *)
-Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
+(* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n]; *)
+Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[3n];
 W = computeWeights[nodes, lambda];
 Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes];
 Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n];
@@ -85,9 +86,11 @@ Print["Importing Hermite function values at many points t..."]; {t, psit} = impo
 
 (* functions depend on constants/parameters defined above *)
 
-F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * t^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * t * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
+F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * SetPrecision[t, precision]^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * SetPrecision[t, precision] * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
+(* s = 500; *)
+(* F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * s^2 * SetPrecision[t, precision]^2 ] * (Total[Table[ A[[j]] * Exp[ s * SetPrecision[t, precision] * T[[j]] ], {j, Dimensions[A][[1]]} ]]); *)
 
-mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-k);
+mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 3n} ]] * w^(-k); 
 
 H[x_] := Piecewise[{ {1, Abs[x] <= 1/2}, {Exp[-Exp[2 / (1 - 2 * Abs[x])] / (1 - Abs[x])], 1/2 < Abs[x] < 1}, {0, Abs[x] >= 1} }];
 
@@ -114,7 +117,7 @@ n = 40
 mut = Range[n];
 mutn = Table[mu[t], {t, mut}];
 Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
-Export["temp/mutn.mat", SetPrecision[mutn, precision], "List"];
+Export["temp/mutn.mat", SetPrecision[mutn, precision], "List"]; *)
 (* mut = Range[Dimensions[mul][[1]]];
 Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
 Export["temp/mutn.mat", SetPrecision[mul, precision], "List"]; *)
