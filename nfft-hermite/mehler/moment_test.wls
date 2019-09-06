@@ -68,16 +68,16 @@ importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat
 (* COMPUTE/IMPORT DATA *)
 
 (* Re-compute data *)
-Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
+(* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n];
 W = computeWeights[nodes, lambda];
 Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes];
-Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n];
+Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n]; *)
 
 (* Import previously-computed data *)
-(* Print["Importing Gauss Hermite nodes and weights..."]; {nodes, lambda} = importGaussHermite[];
+Print["Importing Gauss Hermite nodes and weights..."]; {nodes, lambda} = importGaussHermite[];
 W = computeWeights[nodes, lambda];
 Print["Importing Hermite function values at nodes..."]; psi = importPsi[];
-Print["Importing Hermite function values at many points t..."]; {t, psit} = importHermiteT[]; *)
+Print["Importing Hermite function values at many points t..."]; {t, psit} = importHermiteT[];
 
 
 
@@ -91,7 +91,8 @@ mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 2n} ]] * w^(-
 
 H[x_] := Piecewise[{ {1, Abs[x] <= 1/2}, {Exp[-Exp[2 / (1 - 2 * Abs[x])] / (1 - Abs[x])], 1/2 < Abs[x] < 1}, {0, Abs[x] >= 1} }];
 
-Tn[xi_] := Total[Table[ H[k/n] * mu[k] * psit[[k, xi]], {k, n} ]];
+(* Tn[xi_] := Total[Table[ H[k/n] * mu[k] * psit[[k, xi]], {k, n} ]]; *)
+Tn[xi_] := Total[Table[ H[k/n] * mudirect[[k]] * psit[[k, xi]], {k, n} ]];
 
 gram[nodes_, degree_] :=
 	Module[{psi},
@@ -110,7 +111,7 @@ mul = Table[Fhat[[k]] / w^(k-1), {k, Dimensions[Fhat][[1]]}];
 Tnl[xi_] := Total[Table[ H[k/n] * mul[[k]] * psit[[k, xi]], {k, n} ]];
 
 (* test plot mu *)
-n = 40
+n = 128
 mut = Range[n];
 mutn = Table[mu[t], {t, mut}];
 Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
@@ -118,6 +119,12 @@ Export["temp/mutn.mat", SetPrecision[mutn, precision], "List"];
 (* mut = Range[Dimensions[mul][[1]]];
 Export["temp/mut.mat", SetPrecision[mut, precision], "List"];
 Export["temp/mutn.mat", SetPrecision[mul, precision], "List"]; *)
+
+(* compute mu directly *)
+(* B = Table[A[[j]] * Exp[Sqrt[5] / 2 * T[[j]]^2], {j, Dimensions[T][[1]]}]; *)
+B = A
+mudirect = Table[Total[Table[B[[j]] * hermiteFunc[k, T[[j]]], {j, Dimensions[T][[1]]}]], {k, n}];
+Export["temp/mutn.mat", SetPrecision[mudirect, precision], "List"];
 
 
 
