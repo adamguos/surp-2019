@@ -12,8 +12,8 @@ n = 128;
 numOfPoints = 2048;
 w = (Sqrt[5] - 1) / 2;
 
-A = {1, 3, 1};
-T = {-1, 0, 0.75};
+A = {1, 2, 1};
+T = {-1, 0, 1};
 
 (* err[t_] := RandomReal[{-0.0005, 0.0005}]; *)
 err[t_] := 0
@@ -69,10 +69,10 @@ importHermiteT[] := {Import["data/t.mat", "List"], Import["data/hermite_at_t.mat
 
 (* Re-compute data *)
 (* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[2n]; *)
-Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[3n];
+(* Print["Computing Gauss Hermite nodes and weights..."]; {nodes, lambda} = computeGaussHermite[3n];
 W = computeWeights[nodes, lambda];
 Print["Computing Hermite function values at nodes..."]; psi = computePsi[n, nodes];
-Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n];
+Print["Computing Hermite function values at many points t..."]; {t, psit} = generateHermiteT[numOfPoints, n]; *)
 
 (* Import previously-computed data *)
 (* Print["Importing Gauss Hermite nodes and weights..."]; {nodes, lambda} = importGaussHermite[];
@@ -89,6 +89,8 @@ Print["Importing Hermite function values at many points t..."]; {t, psit} = impo
 F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * SetPrecision[t, precision]^2 ] * (Total[Table[ A[[j]] * Exp[ 2 * SetPrecision[t, precision] * T[[j]] ], {j, Dimensions[A][[1]]} ]]);
 (* s = 500; *)
 (* F[t_] := (Pi * w)^(-1/2) * Exp[ -(Sqrt[5] / 2) * s^2 * SetPrecision[t, precision]^2 ] * (Total[Table[ A[[j]] * Exp[ s * SetPrecision[t, precision] * T[[j]] ], {j, Dimensions[A][[1]]} ]]); *)
+
+Print[F[2]];
 
 mu[k_] := Total[Table[ W[[l]] * F[ nodes[[l]] ] * psi[[k, l]], {l, 3n} ]] * w^(-k); 
 
