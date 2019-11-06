@@ -5,7 +5,6 @@ H = np.array([[k for k in j.split("\t")] for j in open("data/H192_0001.mat", "r"
 N = np.array([a for a in range(1, 193)])
 from solve_weights import solve_weights
 W, R = solve_weights(X, H, N)
-print(W)
 print(R)
 
 plt.scatter(N, R)
