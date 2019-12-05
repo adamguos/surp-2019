@@ -1,5 +1,6 @@
 function hfuncinfty(x)
-	y = zeros(size(x))
+	# y = zeros(size(x))
+	y = fill(BigFloat(0), size(x))
 	x = abs.(x)
 
 	ind = findall(x .<= 1/2)
@@ -9,7 +10,7 @@ function hfuncinfty(x)
 
 	ind = findall(1/2 .< x .< 1)
 	for i in ind
-		y[i] = exp(-exp(2 / (1 - 2 * x[i])) / (1 - x[i]))
+		y[i] = exp(-exp(BigFloat(2 / (1 - 2 * x[i]))) / (1 - x[i]))
 	end
 
 	return y

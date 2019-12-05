@@ -9,14 +9,14 @@ Output:
 
 function observations(a, t, x)
 	K = (length(a) == length(t)) ? length(a) : throw(ArgumentError("t and a must be of equal length"))
-	w = (sqrt(5) - 1) / 2
+	w = BigFloat((sqrt(5) - 1) / 2)
 	s = size(x, 1)
 
-	y = zeros(s)
+	y = fill(BigFloat(0), s)
 
 	for k = 1:s
-		y[k] = (pi * w)^(-1/2) * exp(-sqrt(5) / 2 * x[k]^2)
-		obs = zeros(K)
+		y[k] = (BigFloat(pi) * w)^(-1/2) * exp(BigFloat(-sqrt(5) / 2) * x[k]^2)
+		obs = fill(BigFloat(0), K)
 		for j = 1:K
 			obs[j] = a[j] * exp(2 * x[k] * t[j])
 		end
