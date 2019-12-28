@@ -1,7 +1,7 @@
 # Pomona College Summer Undergraduate Research Program (SURP) 2019
 
-Topic: Inversion of Laplace transform of a linear combination of point masses, with applications in medical imaging
-Research supervisor: Hrushikesh Mhaskar, Claremont Graduate University
+Topic: Inversion of Laplace transform of a linear combination of point masses, with applications in medical imaging  
+Research supervisor: Hrushikesh Mhaskar, Claremont Graduate University  
 Faculty mentor: Adolfo Rumbos, Pomona College
 
 Presented at Claremont Center for the Mathematical Sciences (CCMS) [Poster Session Fall 2019](https://colleges.claremont.edu/ccms/event/poster-session-fall-2019/) and Pomona College [2019 Intensive Summer Experience Poster Conference](https://www.pomona.edu/events/2019-intensive-summer-experience-poster-conference).
