@@ -16,7 +16,7 @@ Presented at Claremont Center for the Mathematical Sciences (CCMS) [Poster Sessi
 
 ## Directories
 
-Main project resides in inverse-laplace. Other directories contain supporting code/projects
+Main project resides in inverse-laplace. Other directories contain supporting code/projects.
 
 - practice: implementations of algorithms including Kaczmarz method, conjugate residual method, and Gauss-Legendre quadrature rules
 - nfft-hermite: implementations of NFFT transforms based on the orthonormal Hermite polynomials
