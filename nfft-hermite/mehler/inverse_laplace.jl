@@ -30,9 +30,9 @@ t = BigFloat.([-1, 0, 0.75])
 # t = [-1, -0.5, 0, 0.5, 1]
 
 # Compute normalised Gauss-Hermite nodes and weights
-# nodes, weights = FastGaussQuadrature.unweightedgausshermite(quad_n)
-nodes = BigFloat.(collect(range(-sqrt(2) * quad_n, stop=sqrt(2) * quad_n, length=quad_n*2)))
-weights = gausshermitesc(quad_n, nodes)
+nodes, weights = FastGaussQuadrature.unweightedgausshermite(quad_n)
+# nodes = BigFloat.(collect(range(-sqrt(2) * quad_n, stop=sqrt(2) * quad_n, length=quad_n*2)))
+# weights = gausshermitesc(quad_n, nodes)
 
 obs = observations(a, t, nodes)
 hermites_nodes = hermitefn(poly_n, nodes)
@@ -63,10 +63,12 @@ for i = 1:npoints
 		arr[k] = expmult(expmult(hfuncinfty([k / poly_n])[1], moments[k]), hermites_samples[k, i])
 	end
 	kernelsum[i] = abs(sum(arr))
-	println("kernelsum: $i")
+
+	i % 64 == 0 && println("kernelsum: $i")
 end
 
-plot!(samples, kernelsum)
+plot(samples, kernelsum)
 plot!(t, seriestype="vline")
-savefig("kernelsum.svg")
-plot()
+gui()
+# savefig("kernelsum.svg")
+# plot()
