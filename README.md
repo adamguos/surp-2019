@@ -1,6 +1,6 @@
 # Pomona College Summer Undergraduate Research Program (SURP) 2019
 
-Adam Guo, Pomona College '22
+Adam Guo, Pomona College '22  
 Topic: Inversion of Laplace transform of a linear combination of point masses, with applications in medical imaging  
 Research supervisor: Hrushikesh Mhaskar, Claremont Graduate University  
 Faculty mentor: Adolfo Rumbos, Pomona College
