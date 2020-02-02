@@ -7,6 +7,8 @@ Faculty mentor: Adolfo Rumbos, Pomona College
 
 Presented at Claremont Center for the Mathematical Sciences (CCMS) [Poster Session Fall 2019](https://colleges.claremont.edu/ccms/event/poster-session-fall-2019/) and Pomona College [2019 Intensive Summer Experience Poster Conference](https://www.pomona.edu/events/2019-intensive-summer-experience-poster-conference).
 
+[poster](https://github.com/adamguos/surp-2019/blob/master/poster.pdf)
+
 ## Reference papers
 
 - [Chui and Mhaskar - A Fourier-invariant method for locating point-masses and computing their attributes](https://arxiv.org/abs/1707.09319)
